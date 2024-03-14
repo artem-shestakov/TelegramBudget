@@ -112,3 +112,8 @@ func (tgb *TgBot) getIncomes(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	return nil
 }
+
+func (tgb *TgBot) startTopUp(b *gotgbot.Bot, ctx *ext.Context) error {
+	b.SendMessage(ctx.EffectiveChat.Id, "Пополнение", nil)
+	return nil
+}

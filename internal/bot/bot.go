@@ -8,6 +8,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/conversation"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/chatmember"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
@@ -57,8 +58,11 @@ func (b *TgBot) initHandlers() {
 	b.updater = ext.NewUpdater(dispatcher, nil)
 
 	// Handlers
+	dispatcher.AddHandler(handlers.NewMessage(checkTopUp(`\+\d+\s+.*`), b.startTopUp))
+
 	// Init
 	dispatcher.AddHandler(handlers.NewMyChatMember(chatmember.Group, b.CreateBudget))
+
 	// Commands
 	dispatcher.AddHandler(handlers.NewCommand("incomes", b.getIncomes))
 
@@ -96,6 +100,11 @@ func (b *TgBot) startPolling(bot *gotgbot.Bot) {
 
 func noCommand(msg *gotgbot.Message) bool {
 	return message.Text(msg) && !message.Command(msg)
+}
+
+func checkTopUp(eq string) filters.Message {
+	f, _ := message.Regex(eq)
+	return f
 }
 
 func (tgb *TgBot) cancelConversation(b *gotgbot.Bot, ctx *ext.Context) error {

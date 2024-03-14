@@ -1,6 +1,6 @@
 package models
 
 type Budget struct {
-	id    int    `db:"id"`
-	title string `db:"title"`
+	Id    int    `db:"id"`
+	Title string `db:"title"`
 }

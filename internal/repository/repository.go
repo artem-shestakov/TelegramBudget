@@ -9,6 +9,7 @@ import (
 const (
 	budgetTable  = "budgets"
 	incomesTable = "incomes"
+	topUpTable   = "top_ups"
 )
 
 type Budget interface {
@@ -18,6 +19,7 @@ type Budget interface {
 type Income interface {
 	Create(income models.Income) (int, error)
 	GetAll(chatId int64) ([]models.Income, error)
+	TopUp(topUp models.TopUp) (int, error)
 }
 
 type Repository struct {

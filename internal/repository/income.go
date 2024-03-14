@@ -48,3 +48,13 @@ func (r *IncomeRepository) GetAll(chatId int64) ([]models.Income, error) {
 	}
 	return incomes, nil
 }
+
+func (r *IncomeRepository) TopUp(topUp models.TopUp) (int, error) {
+	var topUpId int64
+	query := fmt.Sprintf("INSERT INTO %s (transaction_date, amount, description, income_id) values ($1, $2, $3, $4) RETURNING id", topUpTable)
+	row := r.db.QueryRow(query, topUp.Date, topUp.Amount, topUp.Description, topUp.IncomeId)
+	if err := row.Scan(&topUp); err != nil {
+		return 0, err
+	}
+	return int(topUpId), nil
+}

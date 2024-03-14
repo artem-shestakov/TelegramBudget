@@ -12,6 +12,7 @@ type Budget interface {
 type Income interface {
 	Create(income models.Income) (int, error)
 	GetAll(chatId int64) ([]models.Income, error)
+	TopUp(topUp models.TopUp) (int, error)
 }
 
 type Service struct {

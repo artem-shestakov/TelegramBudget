@@ -22,3 +22,7 @@ func (s *IncomeService) Create(income models.Income) (int, error) {
 func (s *IncomeService) GetAll(chatId int64) ([]models.Income, error) {
 	return s.repository.Income.GetAll(chatId)
 }
+
+func (s *IncomeService) TopUp(topUp models.TopUp) (int, error) {
+	return s.repository.Income.TopUp(topUp)
+}

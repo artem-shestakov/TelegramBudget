@@ -7,7 +7,10 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/conversation"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/chatmember"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 	"github.com/artem-shestakov/telegram-budget/internal/service"
 	"github.com/sirupsen/logrus"
 )
@@ -45,7 +48,6 @@ func (b *TgBot) initBot() (*gotgbot.Bot, error) {
 }
 
 func (b *TgBot) initHandlers() {
-
 	dispatcher := ext.NewDispatcher(&ext.DispatcherOpts{
 		Error: func(b *gotgbot.Bot, ctx *ext.Context, err error) ext.DispatcherAction {
 			log.Println("an error occurred while handling update:", err.Error())
@@ -55,7 +57,23 @@ func (b *TgBot) initHandlers() {
 	b.updater = ext.NewUpdater(dispatcher, nil)
 
 	// Handlers
+	// Init
 	dispatcher.AddHandler(handlers.NewMyChatMember(chatmember.Group, b.CreateBudget))
+	// Commands
+	dispatcher.AddHandler(handlers.NewCommand("incomes", b.getIncomes))
+
+	// Conversations
+	// Create income
+	dispatcher.AddHandler(handlers.NewConversation(
+		[]ext.Handler{handlers.NewCallback(callbackquery.Equal("_create_income"), b.createIncomeInfo)},
+		map[string][]ext.Handler{
+			"income_creating": {handlers.NewMessage(noCommand, b.createIncome)},
+		},
+		&handlers.ConversationOpts{
+			Exits:        []ext.Handler{handlers.NewCommand("cancel", b.cancelConversation)},
+			StateStorage: conversation.NewInMemoryStorage(conversation.KeyStrategySenderAndChat),
+		},
+	))
 }
 
 func (b *TgBot) startPolling(bot *gotgbot.Bot) {
@@ -74,4 +92,19 @@ func (b *TgBot) startPolling(bot *gotgbot.Bot) {
 	b.logger.Infof("%s has been started...\n", bot.User.Username)
 
 	b.updater.Idle()
+}
+
+func noCommand(msg *gotgbot.Message) bool {
+	return message.Text(msg) && !message.Command(msg)
+}
+
+func (tgb *TgBot) cancelConversation(b *gotgbot.Bot, ctx *ext.Context) error {
+	_, err := ctx.EffectiveMessage.Reply(b, "Oh, goodbye!", &gotgbot.SendMessageOpts{
+		ParseMode: "html",
+	})
+	if err != nil {
+		tgb.logger.Errorf("failed to send cancel message: %w", err)
+		return nil
+	}
+	return handlers.EndConversation()
 }

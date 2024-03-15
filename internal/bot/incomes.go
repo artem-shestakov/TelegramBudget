@@ -89,7 +89,7 @@ func (tgb *TgBot) startTopUp(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	sendIncomes(incomes, b, ctx, "Куда отнести доход?")
-	return nil
+	return handlers.NextConversationState("topup_select_income")
 }
 
 func incomesBtn(incomes []models.Income) [][]gotgbot.InlineKeyboardButton {

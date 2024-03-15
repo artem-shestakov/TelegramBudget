@@ -81,7 +81,10 @@ func (b *TgBot) initHandlers() {
 	dispatcher.AddHandler(handlers.NewConversation(
 		[]ext.Handler{handlers.NewMessage(regexMsg(`\+\d+\s+.*`), b.startTopUp)},
 		map[string][]ext.Handler{
-			// "topup_select_income": {handlers.NewMessage(noCommand, b.createIncome)},
+			"topup_select_income": {
+				handlers.NewMessage(noCommand, b.createIncome),
+				handlers.NewCallback(callbackquery.Equal("_create_income"), b.createIncomeInfo),
+			},
 			"income_creating": {handlers.NewMessage(noCommand, b.createIncome)},
 		},
 		&handlers.ConversationOpts{

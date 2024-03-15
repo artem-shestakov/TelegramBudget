@@ -13,7 +13,7 @@ import (
 
 var createIncomeBtn = []gotgbot.InlineKeyboardButton{
 	{
-		Text:         "➕ ADD",
+		Text:         "➕ Добавить новый",
 		CallbackData: "_create_income",
 	},
 }
@@ -77,22 +77,24 @@ func (tgb *TgBot) getIncomes(b *gotgbot.Bot, ctx *ext.Context) error {
 		tgb.logger.Errorln(err.Error())
 		return nil
 	}
-	if len(incomes) == 0 {
-		b.SendMessage(ctx.EffectiveChat.Id, "У Вас пока нет источников дохода", &gotgbot.SendMessageOpts{
-			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
-				InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
-					createIncomeBtn,
-				},
-			},
-			ParseMode: "html",
-		})
+	sendIncomes(incomes, b, ctx, "Ваши источники дохода")
+
+	return nil
+}
+
+func (tgb *TgBot) startTopUp(b *gotgbot.Bot, ctx *ext.Context) error {
+	incomes, err := tgb.service.Income.GetAll(ctx.EffectiveChat.Id)
+	if err != nil {
+		tgb.logger.Errorln(err.Error())
 		return nil
 	}
+	sendIncomes(incomes, b, ctx, "Куда отнести доход?")
+	return nil
+}
 
+func incomesBtn(incomes []models.Income) [][]gotgbot.InlineKeyboardButton {
 	var income_btns [][]gotgbot.InlineKeyboardButton
 	for _, income := range incomes {
-		fmt.Println(income)
-		// var income_btn []gotgbot.InlineKeyboardButton
 		income_btn := []gotgbot.InlineKeyboardButton{
 			{
 				Text:         income.Title,
@@ -102,18 +104,16 @@ func (tgb *TgBot) getIncomes(b *gotgbot.Bot, ctx *ext.Context) error {
 		income_btns = append(income_btns, income_btn)
 	}
 
-	income_btns = append(income_btns, createIncomeBtn)
-	b.SendMessage(ctx.EffectiveChat.Id, "Ваши источники дохода", &gotgbot.SendMessageOpts{
+	return append(income_btns, createIncomeBtn)
+}
+
+func sendIncomes(incomes []models.Income, b *gotgbot.Bot, ctx *ext.Context, msg string) error {
+	income_btns := incomesBtn(incomes)
+	b.SendMessage(ctx.EffectiveChat.Id, msg, &gotgbot.SendMessageOpts{
 		ReplyMarkup: &gotgbot.InlineKeyboardMarkup{
 			InlineKeyboard: income_btns,
 		},
 		ParseMode: "html",
 	})
-
-	return nil
-}
-
-func (tgb *TgBot) startTopUp(b *gotgbot.Bot, ctx *ext.Context) error {
-	b.SendMessage(ctx.EffectiveChat.Id, "Пополнение", nil)
 	return nil
 }

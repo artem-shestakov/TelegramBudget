@@ -58,8 +58,6 @@ func (b *TgBot) initHandlers() {
 	b.updater = ext.NewUpdater(dispatcher, nil)
 
 	// Handlers
-	dispatcher.AddHandler(handlers.NewMessage(checkTopUp(`\+\d+\s+.*`), b.startTopUp))
-
 	// Init
 	dispatcher.AddHandler(handlers.NewMyChatMember(chatmember.Group, b.CreateBudget))
 
@@ -71,6 +69,19 @@ func (b *TgBot) initHandlers() {
 	dispatcher.AddHandler(handlers.NewConversation(
 		[]ext.Handler{handlers.NewCallback(callbackquery.Equal("_create_income"), b.createIncomeInfo)},
 		map[string][]ext.Handler{
+			"income_creating": {handlers.NewMessage(noCommand, b.createIncome)},
+		},
+		&handlers.ConversationOpts{
+			Exits:        []ext.Handler{handlers.NewCommand("cancel", b.cancelConversation)},
+			StateStorage: conversation.NewInMemoryStorage(conversation.KeyStrategySenderAndChat),
+		},
+	))
+
+	// top up income
+	dispatcher.AddHandler(handlers.NewConversation(
+		[]ext.Handler{handlers.NewMessage(regexMsg(`\+\d+\s+.*`), b.startTopUp)},
+		map[string][]ext.Handler{
+			// "topup_select_income": {handlers.NewMessage(noCommand, b.createIncome)},
 			"income_creating": {handlers.NewMessage(noCommand, b.createIncome)},
 		},
 		&handlers.ConversationOpts{
@@ -102,8 +113,8 @@ func noCommand(msg *gotgbot.Message) bool {
 	return message.Text(msg) && !message.Command(msg)
 }
 
-func checkTopUp(eq string) filters.Message {
-	f, _ := message.Regex(eq)
+func regexMsg(p string) filters.Message {
+	f, _ := message.Regex(p)
 	return f
 }
 

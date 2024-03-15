@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS incomes (
 CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    amount INT,
+    amount numeric,
     description TEXT
 );
 
